@@ -11,8 +11,8 @@
     "build": "yarn rimraf ./build && tsc",
     "lint": "prettier --check 'src/**/*.{js,ts}' && eslint .",
     "format": "prettier --write '**/*.{js,ts}'",
-    "test": "jest --config jest.config.mjs",
-    "test:watch": "jest --watch",
+    "test": "jest ./src --config jest.config.mjs",
+    "test:watch": "jest ./src --watch",
     "connector:post-deploy": "node build/connector/post-deploy.js",
     "connector:pre-undeploy": "node build/connector/pre-undeploy.js"
   },
