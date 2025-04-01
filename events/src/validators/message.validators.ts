@@ -10,7 +10,8 @@ import {
   HTTP_STATUS_SUCCESS_ACCEPTED,
 } from '../types/constants/http-status.constants';
 
-export function isSelfCreatedChange(messageBody: unknown) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function isSelfCreatedChange(messageBody: any) {
   if (
     typeof messageBody !== 'object' ||
     messageBody === null ||
@@ -59,7 +60,7 @@ export async function validateMessageBody(request: Request) {
     );
   }
 
-  // Make sure incoming message is not created by the current connector
+  //Make sure incoming message is not created by the current connector
   if (isSelfCreatedChange(messageBody)) {
     throw new CustomError(
       HTTP_STATUS_SUCCESS_ACCEPTED,
