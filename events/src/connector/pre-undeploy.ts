@@ -2,20 +2,22 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 import { createApiRoot } from '../client/create.client';
-import { assertError } from '../utils/assert.utils';
-import { deleteCustomerCreateSubscription } from './actions';
+import { deleteSubscription } from './actions';
+import { getLogger } from '../utils/logger.utils';
 
 async function preUndeploy(): Promise<void> {
   const apiRoot = createApiRoot();
-  await deleteCustomerCreateSubscription(apiRoot);
+  await deleteSubscription(apiRoot);
 }
 
-async function run(): Promise<void> {
+export async function run(): Promise<void> {
+  const logger = getLogger(false);
   try {
+    logger.info('Running pre-undeploy...');
     await preUndeploy();
+    logger.info('Successfully completed pre-undeploy...');
   } catch (error) {
-    assertError(error);
-    process.stderr.write(`Post-undeploy failed: ${error.message}\n`);
+    logger.error('Pre-undeploy failed:', error);
     process.exitCode = 1;
   }
 }
