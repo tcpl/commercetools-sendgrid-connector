@@ -8,7 +8,7 @@ import { readConfiguration } from '../utils/config.utils';
 import {
   HTTP_STATUS_BAD_REQUEST,
   HTTP_STATUS_SUCCESS_ACCEPTED,
-} from '../constants/http-status.constants';
+} from '../types/constants/http-status.constants';
 
 export function isSelfCreatedChange(messageBody: any) {
   const resourceModifiedBy = messageBody.createdBy?.clientId;
@@ -46,6 +46,7 @@ export async function validateMessageBody(request: Request) {
       'Bad request: Wrong No Pub/Sub message format - Cannot decode message body'
     );
   }
+
   // Make sure incoming message is not created by the current connector
   if (isSelfCreatedChange(messageBody)) {
     throw new CustomError(

@@ -5,6 +5,7 @@
   "license": "MIT",
   "private": true,
   "scripts": {
+    "postinstall": "cd .. && husky ./events/.husky",
     "start": "tsc && node build/index.js",
     "dev": "tsx --watch --conditions=development src/index.ts",
     "build": "yarn --cwd ../common install && yarn --cwd ../common run build && rimraf ./build && tsc",

@@ -2,12 +2,9 @@ import {
   optional,
   standardString,
   standardKey,
-  region,
+  standardUrl,
 } from './helpers.validators';
 
-/**
- * Create here your own validators
- */
 const envValidators = [
   standardString(
     ['clientId'],
@@ -45,11 +42,43 @@ const envValidators = [
     { min: 2, max: undefined }
   ),
 
-  region(['region'], {
-    code: 'InvalidRegion',
-    message: 'Not a valid region.',
+  standardUrl(['authUrl'], {
+    code: 'InvalidAuthUrl',
+    message: 'CTP_AUTH_URL is not a valid URL.',
     referencedBy: 'environmentVariables',
   }),
+
+  standardUrl(['apiUrl'], {
+    code: 'InvalidApiUrl',
+    message: 'CTP_API_URL is not a valid URL.',
+    referencedBy: 'environmentVariables',
+  }),
+
+  standardString(
+    ['sendgridApiKey'],
+    {
+      code: 'InvalidSendgridApiKey',
+      message: 'Sendgrid key must be present.',
+      referencedBy: 'environmentVariables',
+    },
+    { min: 4, max: undefined }
+  ),
+
+  optional(standardUrl)(['otlpExporterEndpoint'], {
+    code: 'InvalidOtlpExporterEndpoint',
+    message: 'Otlp Exporter Host is not a valid URL.',
+    referencedBy: 'environmentVariables',
+  }),
+
+  optional(standardString)(
+    ['otlpExporterEndpointApiKey'],
+    {
+      code: 'InValidOtlpExporterHostApiKey',
+      message: 'Otlp key not correct.',
+      referencedBy: 'environmentVariables',
+    },
+    { min: 4, max: 128 }
+  ),
 ];
 
 export default envValidators;
