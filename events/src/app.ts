@@ -33,6 +33,10 @@ app.post('/', async (req, res) => {
     console.log(`Resource type: ${resourceType} not supported`);
   }
 
+  app.use('/*wildcard', () => {
+    res.status(404).send();
+  });
+
   res.status(204).send();
 });
 

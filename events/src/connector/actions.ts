@@ -1,79 +1,75 @@
-import {
-  AzureServiceBusDestination,
-  Destination,
-  GoogleCloudPubSubDestination,
-} from '@commercetools/platform-sdk';
+import type { Destination } from '@commercetools/platform-sdk';
 import { ByProjectKeyRequestBuilder } from '@commercetools/platform-sdk/dist/declarations/src/generated/client/by-project-key-request-builder';
+import { getLogger } from '../utils/logger.utils';
 
-const CUSTOMER_CREATE_SUBSCRIPTION_KEY =
-  'myconnector-customerCreateSubscription';
+const SUBSCRIPTION_KEY = 'tcpl-sendgrid-subscription';
 
-export async function createGcpPubSubCustomerCreateSubscription(
+export async function createSubscription(
   apiRoot: ByProjectKeyRequestBuilder,
   topicName: string,
   projectId: string
-): Promise<void> {
-  const destination: GoogleCloudPubSubDestination = {
+) {
+  const logger = getLogger(false);
+
+  const {
+    body: { results: subscriptions },
+  } = await getSubscriptions(apiRoot);
+
+  const destination: Destination = {
     type: 'GoogleCloudPubSub',
     topic: topicName,
     projectId,
   };
-  await createSubscription(apiRoot, destination);
+
+  if (subscriptions.length === 0) {
+    logger.info('Creating subscription...');
+    await apiRoot
+      .subscriptions()
+      .post({
+        body: {
+          key: SUBSCRIPTION_KEY,
+          destination,
+          changes: [
+            {
+              resourceTypeId: 'customer',
+            },
+          ],
+        },
+      })
+      .execute();
+  } else {
+    logger.info('Updating subscription...');
+    const subscription = subscriptions[0];
+
+    await apiRoot
+      .subscriptions()
+      .withId({ ID: subscription.id })
+      .post({
+        body: {
+          version: subscription.version,
+          actions: [
+            {
+              action: 'changeDestination',
+              destination,
+            },
+          ],
+        },
+      })
+      .execute();
+  }
 }
 
-export async function createAzureServiceBusCustomerCreateSubscription(
-  apiRoot: ByProjectKeyRequestBuilder,
-  connectionString: string
-): Promise<void> {
-  const destination: AzureServiceBusDestination = {
-    type: 'AzureServiceBus',
-    connectionString: connectionString,
-  };
-  await createSubscription(apiRoot, destination);
-}
-
-async function createSubscription(
-  apiRoot: ByProjectKeyRequestBuilder,
-  destination: Destination
-) {
-  await deleteCustomerCreateSubscription(apiRoot);
-  await apiRoot
-    .subscriptions()
-    .post({
-      body: {
-        key: CUSTOMER_CREATE_SUBSCRIPTION_KEY,
-        destination,
-        messages: [
-          {
-            resourceTypeId: 'customer',
-            types: ['CustomerCreated'],
-          },
-        ],
-      },
-    })
-    .execute();
-}
-
-export async function deleteCustomerCreateSubscription(
-  apiRoot: ByProjectKeyRequestBuilder
-): Promise<void> {
+export async function deleteSubscription(apiRoot: ByProjectKeyRequestBuilder) {
   const {
     body: { results: subscriptions },
-  } = await apiRoot
-    .subscriptions()
-    .get({
-      queryArgs: {
-        where: `key = "${CUSTOMER_CREATE_SUBSCRIPTION_KEY}"`,
-      },
-    })
-    .execute();
+  } = await getSubscriptions(apiRoot);
 
   if (subscriptions.length > 0) {
     const subscription = subscriptions[0];
 
     await apiRoot
       .subscriptions()
-      .withKey({ key: CUSTOMER_CREATE_SUBSCRIPTION_KEY })
+      .withKey({ key: SUBSCRIPTION_KEY })
       .delete({
         queryArgs: {
           version: subscription.version,
@@ -82,3 +78,14 @@ export async function deleteCustomerCreateSubscription(
       .execute();
   }
 }
+
+const getSubscriptions = async (apiRoot: ByProjectKeyRequestBuilder) => {
+  return await apiRoot
+    .subscriptions()
+    .get({
+      queryArgs: {
+        where: `key = "${SUBSCRIPTION_KEY}"`,
+      },
+    })
+    .execute();
+};

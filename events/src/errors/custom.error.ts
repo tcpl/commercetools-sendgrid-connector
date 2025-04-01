@@ -20,8 +20,6 @@ class CustomError extends Error {
     if (errors) {
       this.errors = errors;
     }
-
-    console.error(this.message);
   }
 }
 
