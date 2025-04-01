@@ -10,8 +10,20 @@ import {
   HTTP_STATUS_SUCCESS_ACCEPTED,
 } from '../types/constants/http-status.constants';
 
-export function isSelfCreatedChange(messageBody: any) {
-  const resourceModifiedBy = messageBody.createdBy?.clientId;
+export function isSelfCreatedChange(messageBody: unknown) {
+  if (
+    typeof messageBody !== 'object' ||
+    messageBody === null ||
+    !('createdBy' in messageBody)
+  ) {
+    throw new CustomError(
+      HTTP_STATUS_BAD_REQUEST,
+      'Bad request: Invalid message body format - Missing createdBy property'
+    );
+  }
+  const resourceModifiedBy = (
+    messageBody as { createdBy: { clientId: string } }
+  ).createdBy?.clientId;
   const currentConnectorClientId = readConfiguration().clientId;
   return resourceModifiedBy === currentConnectorClientId;
 }

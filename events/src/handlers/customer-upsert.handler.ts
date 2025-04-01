@@ -1,6 +1,6 @@
+import { ClientRequest } from '@sendgrid/client/src/request';
 import { createApiRoot } from '../client/create.client';
 import sendgridClient from '@sendgrid/client';
-import { getLogger } from '../utils/logger.utils';
 
 async function getCustomer(customerId: string) {
   const response = await createApiRoot()
@@ -14,17 +14,15 @@ async function getCustomer(customerId: string) {
   return response.body;
 }
 
-async function sendRequest(msg: any) {
+async function sendRequest(msg: ClientRequest) {
   sendgridClient.setApiKey(process.env.SENDGRID_API_KEY!);
   sendgridClient.request(msg);
 }
 
 export async function handleCustomerUpsert(customerId: string) {
-  const logger = getLogger();
-
   const ctCustomer = await getCustomer(customerId);
 
-  const msg = {
+  const msg: ClientRequest = {
     method: 'PUT',
     url: `/v3/marketing/contacts`,
     body: {
