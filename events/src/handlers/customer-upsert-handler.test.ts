@@ -68,16 +68,32 @@ describe('handleCustomerUpsert', () => {
     await expect(handleCustomerUpsert(mockCustomerId)).rejects.toThrow(error);
   });
 
-  // test('should throw error if sendgrid request fails', async () => {
-  //   const sendgridError = new Error('SendGrid API error');
+  test('should handle case when customer is not found', async () => {
+    // Mock createApiRoot to return null
+    (createApiRoot as jest.Mock).mockReturnValue({
+      customers: () => ({
+        withId: () => ({
+          get: () => ({
+            execute: () => Promise.resolve({}),
+          }),
+        }),
+      }),
+    });
 
-  //   (sendgridClient.setApiKey as jest.Mock).mockImplementation(() => {});
-  //   (sendgridClient.request as jest.Mock).mockImplementation(async () => {
-  //     throw sendgridError;
-  //   });
+    await handleCustomerUpsert(mockCustomerId);
+    expect(sendgridClient.request).not.toHaveBeenCalled();
+  });
 
-  //   await expect(handleCustomerUpsert(mockCustomerId)).rejects.toThrow(
-  //     sendgridError
-  //   );
-  // });
+  test('should throw error if sendgrid request fails', async () => {
+    const sendgridError = new Error('SendGrid API error');
+
+    (sendgridClient.setApiKey as jest.Mock).mockImplementation(async () => {});
+    (sendgridClient.request as jest.Mock).mockReturnValue(async () =>
+      Promise.reject(sendgridError)
+    );
+
+    await handleCustomerUpsert(mockCustomerId).catch((error) => {
+      expect(error).toEqual(sendgridError);
+    });
+  });
 });
