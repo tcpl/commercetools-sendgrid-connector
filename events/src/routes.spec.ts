@@ -3,6 +3,7 @@ import request from 'supertest';
 import app from './app';
 import { readConfiguration } from './utils/config.utils';
 import { handleCustomerUpsert } from './handlers/customer-upsert.handler';
+import { getTestMessage } from './utils/test-helpers/message-helpers';
 
 jest.mock('./utils/config.utils');
 jest.mock('./handlers/customer-upsert.handler', () => ({
@@ -12,6 +13,7 @@ jest.mock('./handlers/customer-upsert.handler', () => ({
 describe('Testing router', () => {
   beforeEach(() => {
     (readConfiguration as jest.Mock).mockClear();
+    (handleCustomerUpsert as jest.Mock).mockResolvedValue(undefined);
   });
 
   test('Post to non existing route', async () => {
@@ -42,74 +44,55 @@ describe('Testing router', () => {
     expect(response.status).toBe(400);
   });
 
-  test('valid body', async () => {
-    const response = await request(app)
-      .post('/')
-      .send({
-        message: {
-          data: 'eyJ0eXBlSWQiOiJjdXN0b21lciIsIm5vdGlmaWNhdGlvblR5cGUiOiJSZXNvdXJlQ3JlYXRlZCIsInJlc291cmNlIjp7ImlkIjoiY3VzdG9tZXItMTIzIn19',
-        },
-      });
-    expect(response.status).toBe(204);
-  });
-
   test('Post body with unsupported resource type', async () => {
-    const response = await request(app)
+    await request(app)
       .post('/')
-      .send({
-        message: {
-          data: 'eyJ0eXBlSWQiOiJub25zdHJ1Y3QiLCJub3RpZmljYXRpb25UeXBlIjoiUmVzb3VyY2VDcmVhdGVkIiwicmVzb3VyY2UiOnsiZGF0YSI6eyJ0eXBlSWQiOiJjdXN0b21lciIsInNjaGVtYSI6InVzZXIiLCJ1c2VyIjoiY3VzdG9tZXItMTIzIn19fQ==',
-        },
-      });
-    expect(response.status).toBe(204);
+      .send(
+        getTestMessage({
+          resource: {
+            typeId: 'order',
+            id: 'order-123',
+          },
+          notificationType: 'ResourceCreated',
+        })
+      )
+      .expect(204);
+    expect(handleCustomerUpsert).not.toHaveBeenCalled();
   });
 
   test('Post body with supported notification type', async () => {
-    (handleCustomerUpsert as jest.Mock).mockResolvedValue(undefined);
-
-    const response = await request(app)
+    await request(app)
       .post('/')
-      .send({
-        message: {
-          data: Buffer.from(
-            JSON.stringify({
-              resource: {
-                typeId: 'customer',
-                id: 'customer-123',
-              },
-              notificationType: 'ResourceUpdated',
-            })
-          ).toString('base64'),
-        },
-      })
+      .send(
+        getTestMessage({
+          resource: {
+            typeId: 'customer',
+            id: 'updated-customer-123',
+          },
+          notificationType: 'ResourceUpdated',
+        })
+      )
       .expect(204);
 
-    expect(response.status).toBe(204);
-    // expect(handleCustomerUpsert).toHaveBeenCalled();
-    expect(handleCustomerUpsert).toHaveBeenCalledWith('customer-123');
+    expect(handleCustomerUpsert).toHaveBeenCalledWith('updated-customer-123');
   });
 
   test('Post body with unsupported notification type', async () => {
     (handleCustomerUpsert as jest.Mock).mockResolvedValue(undefined);
 
-    const response = await request(app)
+    await request(app)
       .post('/')
-      .send({
-        message: {
-          data: Buffer.from(
-            JSON.stringify({
-              resource: {
-                typeId: 'customer',
-                id: 'customer-123',
-              },
-              notificationType: 'ResourceDeleted',
-            })
-          ).toString('base64'),
-        },
-      })
+      .send(
+        getTestMessage({
+          resource: {
+            typeId: 'customer',
+            id: 'customer-123',
+          },
+          notificationType: 'ResourceDeleted',
+        })
+      )
       .expect(204);
 
-    expect(response.status).toBe(204);
     expect(handleCustomerUpsert).not.toHaveBeenCalledWith();
   });
 });
