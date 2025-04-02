@@ -22,4 +22,36 @@ describe('Testing router', () => {
     const response = await request(app).post('/');
     expect(response.status).toBe(400);
   });
+
+  test('Post body with missing data', async () => {
+    const response = await request(app)
+      .post('/')
+      .send({
+        message: {
+          data: null,
+        },
+      });
+    expect(response.status).toBe(400);
+  });
+
+  test('valid body', async () => {
+    const response = await request(app)
+      .post('/')
+      .send({
+        message: {
+          data: 'eyJ0eXBlSWQiOiJjdXN0b21lciIsIm5vdGlmaWNhdGlvblR5cGUiOiJSZXNvdXJlQ3JlYXRlZCIsInJlc291cmNlIjp7ImlkIjoiY3VzdG9tZXItMTIzIn19',
+        },
+      });
+    expect(response.status).toBe(204);
+  });
+  test('Post body with unsupported resource type', async () => {
+    const response = await request(app)
+      .post('/')
+      .send({
+        message: {
+          data: 'eyJ0eXBlSWQiOiJub25zdHJ1Y3QiLCJub3RpZmljYXRpb25UeXBlIjoiUmVzb3VyY2VDcmVhdGVkIiwicmVzb3VyY2UiOnsiZGF0YSI6eyJ0eXBlSWQiOiJjdXN0b21lciIsInNjaGVtYSI6InVzZXIiLCJ1c2VyIjoiY3VzdG9tZXItMTIzIn19fQ==',
+        },
+      });
+    expect(response.status).toBe(204);
+  });
 });

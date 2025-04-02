@@ -18,10 +18,14 @@ async function getCustomer(customerId: string) {
 
 async function sendRequest(msg: ClientRequest, logger: winston.Logger) {
   sendgridClient.setApiKey(process.env.SENDGRID_API_KEY!);
-  sendgridClient.request(msg).catch((error) => {
-    logger.error('Error sending request to SendGrid:', error);
-    throw error;
-  });
+  try {
+    await sendgridClient.request(msg);
+  } catch (error) {
+    {
+      logger.error('Error sending request to SendGrid:', error);
+      throw error;
+    }
+  }
 }
 
 export async function handleCustomerUpsert(customerId: string) {
