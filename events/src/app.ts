@@ -30,8 +30,6 @@ app.post('/', async (req, res) => {
         await handleCustomerUpsert(resourceId);
         break;
     }
-  } else {
-    console.dir(`Unsupported resource type: ${resourceType}`);
   }
 
   res.status(204).send();
