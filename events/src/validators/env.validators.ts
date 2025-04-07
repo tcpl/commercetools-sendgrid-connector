@@ -9,7 +9,7 @@ const envValidators = [
   standardString(
     ['clientId'],
     {
-      code: 'InValidClientId',
+      code: 'InvalidClientId',
       message: 'Client id should be 24 characters.',
       referencedBy: 'environmentVariables',
     },
@@ -73,7 +73,7 @@ const envValidators = [
   optional(standardString)(
     ['otlpExporterEndpointApiKey'],
     {
-      code: 'InValidOtlpExporterHostApiKey',
+      code: 'InvalidOtlpExporterHostApiKey',
       message: 'Otlp key not correct.',
       referencedBy: 'environmentVariables',
     },

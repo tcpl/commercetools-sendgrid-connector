@@ -33,6 +33,11 @@ describe('Testing router', () => {
     expect(response.status).toBe(400);
   });
 
+  test('Post empty body message', async () => {
+    const response = await request(app).post('/').send({});
+    expect(response.status).toBe(400);
+  });
+
   test('Post body with missing data', async () => {
     const response = await request(app)
       .post('/')

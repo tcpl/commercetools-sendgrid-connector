@@ -4,10 +4,6 @@
 import validator from 'validator';
 import { ValidatorCreator, Wrapper } from '../types/index.types';
 
-/**
- * File used to create helpers to validate the fields
- */
-
 const required: Wrapper =
   (fn) =>
   (value, ...args) =>
