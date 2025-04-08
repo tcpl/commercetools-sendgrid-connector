@@ -2,7 +2,6 @@ import { ClientRequest } from '@sendgrid/client/src/request';
 import { createApiRoot } from '../client/create.client';
 import sendgridClient from '@sendgrid/client';
 import { getLogger } from '../utils/logger.utils';
-import winston from 'winston';
 
 async function getCustomer(customerId: string) {
   const response = await createApiRoot()
@@ -16,16 +15,10 @@ async function getCustomer(customerId: string) {
   return response.body;
 }
 
-async function sendRequest(msg: ClientRequest, logger: winston.Logger) {
+async function sendRequest(msg: ClientRequest) {
   sendgridClient.setApiKey(process.env.SENDGRID_API_KEY!);
-  try {
-    await sendgridClient.request(msg);
-  } catch (error) {
-    {
-      logger.error('Error sending request to SendGrid:', error);
-      throw error;
-    }
-  }
+
+  await sendgridClient.request(msg);
 }
 
 export async function handleCustomerUpsert(customerId: string) {
@@ -52,5 +45,5 @@ export async function handleCustomerUpsert(customerId: string) {
     },
   };
 
-  await sendRequest(msg, logger);
+  await sendRequest(msg);
 }

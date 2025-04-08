@@ -2,8 +2,9 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 import { createApiRoot } from '../client/create.client';
-import { assertError, assertString } from '../utils/assert.utils';
+
 import { createSubscription } from './actions';
+import { getLogger } from '../utils/logger.utils';
 
 const CONNECT_GCP_TOPIC_NAME_KEY = 'CONNECT_GCP_TOPIC_NAME';
 const CONNECT_GCP_PROJECT_ID_KEY = 'CONNECT_GCP_PROJECT_ID';
@@ -11,21 +12,22 @@ const CONNECT_GCP_PROJECT_ID_KEY = 'CONNECT_GCP_PROJECT_ID';
 async function postDeploy(properties: Map<string, unknown>): Promise<void> {
   const apiRoot = createApiRoot();
 
-  const topicName = properties.get(CONNECT_GCP_TOPIC_NAME_KEY);
-  const projectId = properties.get(CONNECT_GCP_PROJECT_ID_KEY);
-  assertString(topicName, CONNECT_GCP_TOPIC_NAME_KEY);
-  assertString(projectId, CONNECT_GCP_PROJECT_ID_KEY);
+  const topicName = properties.get(CONNECT_GCP_TOPIC_NAME_KEY) as string;
+  const projectId = properties.get(CONNECT_GCP_PROJECT_ID_KEY) as string;
 
   await createSubscription(apiRoot, topicName, projectId);
 }
 
-async function run(): Promise<void> {
+export async function run(): Promise<void> {
+  const logger = getLogger(false);
+
   try {
+    logger.info('Running post-deploy...');
     const properties = new Map(Object.entries(process.env));
     await postDeploy(properties);
+    logger.info('Successfully completed post-deploy...');
   } catch (error) {
-    assertError(error);
-    process.stderr.write(`Post-deploy failed: ${error.message}\n`);
+    logger.error('Post-deploy failed:', error);
     process.exitCode = 1;
   }
 }

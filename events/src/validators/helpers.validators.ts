@@ -4,10 +4,6 @@
 import validator from 'validator';
 import { ValidatorCreator, Wrapper } from '../types/index.types';
 
-/**
- * File used to create helpers to validate the fields
- */
-
 const required: Wrapper =
   (fn) =>
   (value, ...args) =>
@@ -24,23 +20,6 @@ export const standardString: ValidatorCreator = (
       required(validator.isLength),
       message,
       [{ min: 2, max: 20, ...overrideConfig }],
-    ],
-  ],
-];
-
-export const standardEmail: ValidatorCreator = (path, message) => [
-  path,
-  [[required(validator.isEmail), message]],
-];
-
-export const standardNaturalNumber = (path, message) => [
-  path,
-  [
-    [
-      required((value) =>
-        validator.isNumeric(String(value), { no_symbols: true })
-      ),
-      message,
     ],
   ],
 ];
@@ -111,39 +90,3 @@ export const optional =
       ]),
     ];
   };
-
-export const array =
-  (fn) =>
-  (...args) => {
-    const [path, validators] = fn(...args);
-    return [
-      path,
-      validators.map(([fn, message, validatorArgs]) => [
-        (value, ...args) =>
-          Array.isArray(value) &&
-          value.every((value) => fn(...[value, ...args])),
-        message,
-        validatorArgs,
-      ]),
-    ];
-  };
-
-export const region: ValidatorCreator = (path, message) => [
-  path,
-  [
-    [
-      required(
-        required((value) =>
-          validator.isIn(value, [
-            'us-central1.gcp',
-            'us-east-2.aws',
-            'europe-west1.gcp',
-            'eu-central-1.aws',
-            'australia-southeast1.gcp',
-          ])
-        )
-      ),
-      message,
-    ],
-  ],
-];
